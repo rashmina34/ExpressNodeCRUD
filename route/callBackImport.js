@@ -2,7 +2,7 @@ var express = require("express");
 var call = express.Router();
 
 // importing callBackExport file from controller folder
-var Callback = require("../callbackController/callBackExport");
+var Callback = require("../controller/callBackExport");
 
 // Create a new node
 call.post('/post', Callback.createData);

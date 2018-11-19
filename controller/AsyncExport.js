@@ -27,17 +27,85 @@ exports.createData = async (request, response) => {
 
 //Retrieve data from dataBase
 exports.retrieveData = async(request, response) =>{
+
+    // ?pageNumber=3&size=4 using find
     try{
-        const Node = await node.find({delete: {$ne: true}}).sort({date: 'desc'});
+            var pageNo = parseInt(request.query.pageNo)
+            var size = parseInt(request.query.size)
+            var query = {}//empty query
+
+            // validating the page
+            if(pageNo < 0 || pageNo === 0) {
+                response = {"error" : true,"message" : "invalid page number, should start with 1"};
+                return response.json(response)
+            }
+
+            // logic of skip and limit
+            query.skip = size * (pageNo - 1)
+            query.limit = size
+            
+            const user= node.find({},{},query);
+            const note = await user.find({deleted: {$ne: true}}).sort({date: 'desc'});
+            const msg= await response.json(note);
+            return msg;
+        /*//const query = {}; //empty query  
+
+        //Handling query request
+        const pagenum = parseInt(request.query.pagenum);
+        const datasize = parseInt(request.query.datasize);
+        const query = {}; //empty query  
+
+
+        //invalid pageNO
+        if (pagenum < 0 || pagenum ===0) {
+            return response.json({ message: "Mentioned page number not found" });
+        }
+
+        //fetch pageNo and size
+        query.skip = datasize * (pagenum - 1);
+        query.limit = datasize;
+
+        const users = await node.find({}, {}, query);
+        const Node = await users.find({delete: {$ne: true}}).sort({date: 'desc'}); // if delete is not equal to true
+        //const Node = await node.find().sort({date: 'desc'});
         const output = await response.json(Node);
-        return output;
+        return output;*/
     }
     catch(err){
         response.status(500).json({
-            message: "something went wrong"
+            message: "something went wrong",
+            errmessage: err.toString()
         });
     }
 };
+
+//retrieve data from database by id
+exports.retrievebyId = async(request, response) => {
+    if(!request.params.id) {
+        return resuest.status(404).json({
+            message: "data not found with id " + request.params.id
+        });            
+    }
+
+    try {
+        const note = await node.findById(request.params.id);
+        const product = await response.json(note);
+        return product;
+    }
+
+    catch(err) {
+        if(err.kind === 'ObjectId') {
+            return response.status(404).json({
+                message: "data not found with id "  + request.params.id
+            });                
+        }
+        return response.status(500).json({
+            message: "Error retrieving data with id "  + request.params.id,
+            errmessage: err.toString()
+        });
+    }
+};
+
 
 //updating data in database
 exports.updateData = async(request, response) => {
@@ -64,11 +132,13 @@ exports.updateData = async(request, response) => {
     catch(err){
         if(err.kind === 'ObjectId') {
             return response.status(404).send({
-                message: "Note not found with id " + request.params.id
+                message: "Note not found with id " + request.params.id,
+                errmessage: err.toString()
             });                
         }
         return response.status(500).send({
-            message: "Error updating note with id " + request.params.id
+            message: "Error updating note with id " + request.params.id,
+            errmessage: err.toString()
         });
     }
 };
@@ -94,11 +164,13 @@ exports.deleteData = async(request, response) =>{
     catch(err){
         if(err.kind === 'ObjectId' || err.name === 'NotFound') {
             return response.status(404).send({
-                message: "Note not found with id " + request.params.id
+                message: "Note not found with id " + request.params.id,
+                errmessage: err.toString()
             });                
         }
         return response.status(500).send({
-            message: "data can't be deleted with id" + request.params.id
+            message: "data can't be deleted with id" + request.params.id,
+            errmessage: err.toString()
         });
     }
 };
@@ -106,16 +178,26 @@ exports.deleteData = async(request, response) =>{
 exports.patch = async(request, response) => {
     try{
         const note = await node.findById(request.params.id);
+
         if(request.params.id){
             delete request.params.id;
         }
-        note.delete =true;
+        //note.delete =true;
+        if (note.delete == false){
+            note.delete = true;
+        }
+        else{
+            note.delete = false;
+        }
+
+        //save the updated value
         const save = await note.save();
-        const responses = await response.send({message: "updated"});
+        const responses = await response.send({message: "changes are updated"});
     }
     catch(err){
         response.status(500).json({
-            message: "something went wrong"
+            message: "something went wrong",
+            errmessage: err.toString()
         });
     }
 };

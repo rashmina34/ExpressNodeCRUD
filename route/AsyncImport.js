@@ -10,6 +10,9 @@ router.post("/promise", promise.createData);
 // retrievening data from dataBase
 router.get("/promiseGet", promise.retrieveData);
 
+// retrieveing data by id
+router.get("/promiseGet/:id", promise.retrievebyId);
+
 //updating data stored in dataBase
 router.put("/promise/:id", promise.updateData);
 
