@@ -3,6 +3,7 @@ var Note = require('./../modal/modal');
 
 // Create and Save a new Note
 exports.create = (request, response) => {
+    
     // Validate request // the content below is the variable content which can't be empty
     if(!request.body.content) {
         return response.status(400).send({

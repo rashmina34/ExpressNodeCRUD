@@ -43,7 +43,7 @@ exports.retrieveData = async(request, response) =>{
             // logic of skip and limit
             query.skip = size * (pageNo - 1)
             query.limit = size
-            
+
             const user= node.find({},{},query);
             const note = await user.find({deleted: {$ne: true}}).sort({date: 'desc'});
             const msg= await response.json(note);
@@ -101,7 +101,7 @@ exports.retrievebyId = async(request, response) => {
         }
         return response.status(500).json({
             message: "Error retrieving data with id "  + request.params.id,
-            errmessage: err.toString()
+            errmessage: err.toString() //error message to server 
         });
     }
 };
